@@ -17,8 +17,10 @@ export class DbClient {
     try {
       const result = await this.pool.query(rawSql, args);
       return { rows: result.rows, rowsAffected: result.rowCount || 0 };
-    } catch (error) {
-      console.error('Database query error:', error);
+    } catch (error: any) {
+      if (error.code !== '3D000') {
+        console.error('Database query error:', error);
+      }
       throw error;
     }
   }
