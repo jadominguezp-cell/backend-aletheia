@@ -1,7 +1,7 @@
 import { Module, MiddlewareConsumer, NestModule, RequestMethod } from '@nestjs/common';
 import { BoardsModule } from './boards/boards.module';
 import { toNodeHandler } from 'better-auth/node';
-import { auth } from './auth/auth';
+import { getAuth } from './auth/auth';
 
 import { OperationsModule } from './operations/operations.module';
 
@@ -11,7 +11,7 @@ import { OperationsModule } from './operations/operations.module';
 export class AppModule implements NestModule {
     configure(consumer: MiddlewareConsumer) {
         consumer
-            .apply(toNodeHandler(auth))
+            .apply(toNodeHandler(getAuth()))
             .forRoutes({ path: '/api/auth/*', method: RequestMethod.ALL });
     }
 }

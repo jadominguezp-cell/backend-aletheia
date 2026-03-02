@@ -4,14 +4,14 @@ import { BoardsService } from './boards.service';
 import { HttpException, UnauthorizedException } from '@nestjs/common';
 
 jest.mock('../auth/auth', () => ({
-    auth: {
+    getAuth: jest.fn().mockReturnValue({
         api: {
             getSession: jest.fn()
         }
-    }
+    })
 }));
 
-import { auth } from '../auth/auth';
+import { getAuth } from '../auth/auth';
 
 describe('BoardsController', () => {
     let controller: BoardsController;
@@ -49,14 +49,14 @@ describe('BoardsController', () => {
     });
 
     it('should throw UnauthorizedException if user is not authenticated', async () => {
-        (auth.api.getSession as jest.Mock).mockResolvedValueOnce(null);
+        (getAuth().api.getSession as jest.Mock).mockResolvedValueOnce(null);
 
         await expect(controller.getBoards(mockRequest)).rejects.toThrow(HttpException);
     });
 
     describe('when authenticated', () => {
         beforeEach(() => {
-            (auth.api.getSession as jest.Mock).mockResolvedValue({ user: { id: 'u1' } });
+            (getAuth().api.getSession as jest.Mock).mockResolvedValue({ user: { id: 'u1' } });
         });
 
         it('should get all boards', async () => {

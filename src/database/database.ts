@@ -53,7 +53,43 @@ export function getDatabase(): DbClient {
 }
 
 export async function initDb() {
-  const db = getDatabase();
+  // Extract connection details to attempt auto-creating the DB if missing
+  const connectionString = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/aletheia';
+
+  let db: DbClient;
+  try {
+    // Attempt normal connection
+    db = getDatabase();
+    // Test the connection
+    await db.execute('SELECT 1');
+  } catch (initialError: any) {
+    // 3D000 is the PostgreSQL error code for "catalog/database does not exist"
+    if (initialError.code === '3D000' || initialError.message.includes('does not exist')) {
+      console.log('Database does not exist. Attempting to create it...');
+      try {
+        // Connect to the default 'postgres' database instead, parsing the URL to replace the ending dbname
+        const baseUrl = connectionString.substring(0, connectionString.lastIndexOf('/'));
+        const targetDbName = connectionString.substring(connectionString.lastIndexOf('/') + 1);
+
+        const tempPool = new Pool({ connectionString: `${baseUrl}/postgres` });
+        await tempPool.query(`CREATE DATABASE "${targetDbName}"`);
+        await tempPool.end();
+        console.log(`Successfully created database "${targetDbName}".`);
+
+        // Reset the poolInstance to connect to the newly created DB
+        poolInstance = null;
+        dbClient = undefined as any;
+        db = getDatabase();
+      } catch (createError) {
+        console.error('Failed to auto-create the database:', createError);
+        throw createError;
+      }
+    } else {
+      console.error('Failed to connect to the database:', initialError);
+      throw initialError;
+    }
+  }
+
   try {
     await db.executeMultiple(`
       CREATE TABLE IF NOT EXISTS "user" (

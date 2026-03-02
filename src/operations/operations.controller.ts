@@ -1,14 +1,14 @@
 import { Controller, Get, Put, Body, Param, Req, HttpException, HttpStatus } from '@nestjs/common';
 import { Request } from 'express';
 import { OperationsService } from './operations.service';
-import { auth } from '../auth/auth';
+import { getAuth } from '../auth/auth';
 
 @Controller('api/operations')
 export class OperationsController {
     constructor(private readonly operationsService: OperationsService) { }
 
     private async getUserId(req: Request): Promise<string> {
-        const session = await auth.api.getSession({ headers: req.headers as any });
+        const session = await getAuth().api.getSession({ headers: req.headers as any });
         if (!session?.user?.id) {
             throw new HttpException('No autorizado', HttpStatus.UNAUTHORIZED);
         }
