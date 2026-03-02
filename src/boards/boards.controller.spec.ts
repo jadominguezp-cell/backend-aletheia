@@ -86,7 +86,7 @@ describe('BoardsController', () => {
             mockBoardsService.createBoard.mockResolvedValueOnce({ id: 'b1', title: 'Test' });
             const result = await controller.createBoard({ title: 'Test' }, mockRequest);
             expect(result).toEqual({ id: 'b1', title: 'Test' });
-            expect(service.createBoard).toHaveBeenCalledWith('Test', 'u1');
+            expect(service.createBoard).toHaveBeenCalledWith('Test', 'u1', 'peruana', undefined, undefined);
         });
 
         it('should update a board title', async () => {

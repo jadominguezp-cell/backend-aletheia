@@ -21,6 +21,18 @@ export class OperationsController {
         return this.operationsService.getOperationsByUser(userId);
     }
 
+    @Get('board/:boardId')
+    async getOperationByBoard(@Param('boardId') boardId: string, @Req() req: Request) {
+        const userId = await this.getUserId(req);
+        // The service logic must retrieve the operation for the user's board
+        // Assuming operationsService.getOperationByBoard exists, else we use a workaround
+        // Since we don't have getOperationByBoard in the view, I'll use getOperationsByUser and filter.
+        const ops = await this.operationsService.getOperationsByUser(userId);
+        const operation = ops.find(o => o.board_id === boardId);
+        if (!operation) throw new HttpException('Operación no encontrada para este tablero', HttpStatus.NOT_FOUND);
+        return operation;
+    }
+
     @Get(':id')
     async getOperation(@Param('id') id: string, @Req() req: Request) {
         const userId = await this.getUserId(req);
